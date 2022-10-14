@@ -53,7 +53,7 @@ const getFiles = function (dir, files_) {
   return files_;
 };
 
-const files = getFiles("./transfer");
+const files = getFiles("./transferFrom");
 console.log("Files to send: ", files.length);
 
 // get size in mb of all files in a directory
@@ -67,8 +67,10 @@ const getDirSize = function (dir) {
   return (size / 1000000.0).toFixed(2) + " MB";
 };
 
-console.log("Total folder size: " + getDirSize("./transfer"));
+console.log("Total folder size: " + getDirSize("./transferFrom"));
 
-const test = "its working";
-
-beam.write(test);
+for (file in files) {
+  const stream = fs.createReadStream(files[file]);
+  console.log(files[file]);
+  stream.pipe(beam);
+}

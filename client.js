@@ -1,4 +1,5 @@
 const Hyperbeam = require("hyperbeam");
+const fs = require("fs");
 
 const beam = new Hyperbeam(
   "x3sebeqn4jdvhbo7ctbehyf7crydagxgeaz37idg2mi5xngoerja"
@@ -40,7 +41,10 @@ beam.on("end", () => {
   beam.end();
 });
 
+const stream = fs.createWriteStream("./transferTo/test.png");
+
 beam.on("data", (chunk) => {
-  console.log("chunking");
-  console.log(chunk.toString());
+  console.log(chunk.length);
+  // write chunk to file
+  stream.write(chunk);
 });
