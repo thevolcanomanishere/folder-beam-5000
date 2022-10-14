@@ -43,8 +43,4 @@ beam.on("end", () => {
 
 const stream = fs.createWriteStream("./transferTo/test.png");
 
-beam.on("data", (chunk) => {
-  console.log(chunk.length);
-  // write chunk to file
-  stream.write(chunk);
-});
+beam.pipe(stream);
