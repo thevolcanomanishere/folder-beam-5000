@@ -1,0 +1,14 @@
+{
+  "name": "folder-beam-5000",
+  "version": "1.0.0",
+  "description": "Beam all the contents of a folder to another computer via hyperbeam",
+  "main": "index.js",
+  "author": "Alex McGonagle",
+  "license": "MIT",
+  "dependencies": {
+    "hyperbeam": "^3.0.0"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.0"
+  }
+}
