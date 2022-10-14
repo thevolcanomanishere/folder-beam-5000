@@ -1,6 +1,6 @@
 # Folder Beam 5000
 
-I want a convient, no dependency, multi-platform compatible way to magically beam the contents of a folder from one computer to another without any messing around with IPs, Firewalls, NAT etc etc.
+I want a convenient, no dependency, multi-platform compatible way to magically beam the contents of a folder from one computer to another without any messing around with IPs, Firewalls, NAT etc etc.
 
 ## Usage
 
