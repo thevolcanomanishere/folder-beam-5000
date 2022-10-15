@@ -1,17 +1,22 @@
 const Hyperbeam = require("hyperbeam");
 const fs = require("fs");
 const tar = require("tar-fs");
+const StreamSpeed = require("streamspeed");
 
 const beam = new Hyperbeam(
   "x3sebeqn4jdvhbo7ctbehyf7crydagxgeaz37idg2mi5xngoerja",
   { announce: true }
 );
 
+const speed = new StreamSpeed();
+speed.add(beam);
+
+speed.on("speed", (s) => {
+  console.log("Reading at", s, "bytes per second");
+});
+
 if (beam.announce) {
-  console.error("[hyperbeam] Run hyperbeam " + beam.key + " to connect");
-  console.error(
-    "[hyperbeam] To restart this side of the pipe with the same key add -r to the above"
-  );
+  console.log("Online 🧨");
 } else {
   console.error("[hyperbeam] Connecting pipe...");
 }
@@ -54,9 +59,6 @@ const getFiles = function (dir, files_) {
   return files_;
 };
 
-const files = getFiles("./transferFrom");
-console.log("Files to send: ", files.length);
-
 // get size in mb of all files in a directory
 const getDirSize = function (dir) {
   const files = getFiles(dir);
@@ -68,6 +70,14 @@ const getDirSize = function (dir) {
   return (size / 1000000.0).toFixed(2) + " MB";
 };
 
-console.log("Total folder size: " + getDirSize("./transferFrom"));
+const files = getFiles("./");
+console.log("Files to send: ", files.length);
+console.log("Total folder size: " + getDirSize("./"));
 
-tar.pack(".").pipe(beam);
+tar
+  .pack("./", {
+    ignore: (name) => {
+      return name === "folder-beam-server"; // Ignore the server binary
+    },
+  })
+  .pipe(beam);

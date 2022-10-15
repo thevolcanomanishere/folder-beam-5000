@@ -1124,6 +1124,11 @@ stream-meter@^1.0.4:
   dependencies:
     readable-stream "^2.1.4"
 
+streamspeed@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/streamspeed/-/streamspeed-2.0.1.tgz#7721c438d19cd9f9eb7e1ba3efa14f0222215bff"
+  integrity sha512-j6pFynhO0nZ+1zhyTDqLLlIxM0IyCdLKMj1EUJznDA87xLE/JWSwEg3FlJWERDB72KYt5OD29ZUWxxVkMTnqWg==
+
 streamx@^2.10.0, streamx@^2.10.2, streamx@^2.10.3, streamx@^2.12.0, streamx@^2.12.4:
   version "2.12.5"
   resolved "https://registry.yarnpkg.com/streamx/-/streamx-2.12.5.tgz#485d6b6bf74df6f94bc1cc262e67392ed6862dc0"

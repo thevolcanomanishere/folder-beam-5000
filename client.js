@@ -42,4 +42,4 @@ beam.on("end", () => {
   beam.end();
 });
 
-beam.pipe(tar.extract("./transferTo"));
+beam.pipe(tar.extract("./"));
