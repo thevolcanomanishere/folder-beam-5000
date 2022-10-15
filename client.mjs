@@ -1,8 +1,10 @@
-const Hyperbeam = require("hyperbeam");
-const fs = require("fs");
-const tar = require("tar-fs");
+import Hyperbeam from "hyperbeam";
+import fs from "fs";
+import tar from "tar-fs";
+import logUpdate from "log-update";
 
 let key;
+let totalData = 0;
 
 // load key.txt file
 fs.readFile("key.txt", "utf8", (err, data) => {
@@ -54,5 +56,11 @@ fs.readFile("key.txt", "utf8", (err, data) => {
     beam.end();
   });
 
-  beam.pipe(tar.extract("./"));
+  beam.on("data", (data) => {
+    totalData += data.length;
+    // output total data received in mb
+    logUpdate(`Received ${(totalData / 1000000).toFixed(2)} MB`);
+  });
+
+  beam.pipe(tar.extract("./tmpClient"));
 });

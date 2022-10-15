@@ -1,9 +1,10 @@
-const Hyperbeam = require("hyperbeam");
-const fs = require("fs");
-const tar = require("tar-fs");
-const b4a = require("b4a");
-const sodium = require("sodium-universal");
-const b32 = require("hi-base32");
+import Hyperbeam from "hyperbeam";
+import fs from "fs";
+import tar from "tar-fs";
+import logUpdate from "log-update";
+import b4a from "b4a";
+import sodium from "sodium-universal";
+import b32 from "hi-base32";
 
 const toBase32 = (buf) => {
   return b32.encode(buf).replace(/=/g, "").toLowerCase();
@@ -30,7 +31,7 @@ fs.writeFileSync("key.txt", key, (err) => {
 });
 
 // Get the user provided path
-const path = process.argv[2] || "./";
+const path = process.argv[2] || "./tmpServer";
 
 if (beam.announce) {
   console.log("Online 🧨");
@@ -42,6 +43,7 @@ beam.on("connected", () => {
   console.error(
     "[hyperbeam] Success! Encrypted tunnel established to remote peer"
   );
+  console.log("Beaming files to client 🚀");
 });
 
 const closeASAP = () => {
@@ -88,8 +90,9 @@ const getDirSize = (dir) => {
 };
 
 const files = getFiles(path);
+const fileSize = getDirSize(path);
 console.log("Files to send: ", files.length - 2); // Don't count the binary itself or the key file
-console.log("Total folder size: " + getDirSize(path));
+console.log("Total folder size: " + fileSize);
 
 tar
   .pack(path, {
