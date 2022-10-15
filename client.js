@@ -2,11 +2,18 @@ const Hyperbeam = require("hyperbeam");
 const fs = require("fs");
 const tar = require("tar-fs");
 
-const beam = new Hyperbeam(
-  "x3sebeqn4jdvhbo7ctbehyf7crydagxgeaz37idg2mi5xngoerja"
-);
+let key;
 
-console.log(beam.key);
+// load key.txt file
+fs.readFile("key.txt", "utf8", function (err, data) {
+  if (err) {
+    return console.log("No key.txt file found");
+  }
+  console.log("Key detected: ", data);
+  key = data;
+});
+
+const beam = new Hyperbeam(key);
 
 beam.on("connected", () => {
   console.error(

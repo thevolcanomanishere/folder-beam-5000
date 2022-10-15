@@ -2,14 +2,35 @@ const Hyperbeam = require("hyperbeam");
 const fs = require("fs");
 const tar = require("tar-fs");
 const StreamSpeed = require("streamspeed");
+const b4a = require("b4a");
+const sodium = require("sodium-universal");
+const b32 = require("hi-base32");
 
-const beam = new Hyperbeam(
-  "x3sebeqn4jdvhbo7ctbehyf7crydagxgeaz37idg2mi5xngoerja",
-  { announce: true }
-);
+function toBase32(buf) {
+  return b32.encode(buf).replace(/=/g, "").toLowerCase();
+}
+
+function randomBytes(length) {
+  const buffer = b4a.alloc(length);
+  sodium.randombytes_buf(buffer);
+  return buffer;
+}
+
+const key = toBase32(randomBytes(32));
+console.log("Key: ", key);
+
+const beam = new Hyperbeam(key, { announce: true });
 
 const speed = new StreamSpeed();
 speed.add(beam);
+
+// write key text to file
+fs.writeFile("key.txt", key, function (err) {
+  if (err) {
+    return console.log(err);
+  }
+  console.log("Key file created");
+});
 
 speed.on("speed", (s) => {
   console.log("Reading at", s, "bytes per second");
@@ -64,7 +85,6 @@ const getDirSize = function (dir) {
   const files = getFiles(dir);
   let size = 0;
   for (const i in files) {
-    if (files[i].includes("folder-beam")) return;
     const stats = fs.statSync(files[i]);
     size += stats["size"];
   }

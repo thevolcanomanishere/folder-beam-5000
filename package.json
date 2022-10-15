@@ -6,7 +6,10 @@
   "author": "Alex McGonagle",
   "license": "MIT",
   "dependencies": {
+    "b4a": "^1.6.0",
+    "hi-base32": "^0.5.1",
     "hyperbeam": "^3.0.0",
+    "sodium-universal": "^3.1.0",
     "streamspeed": "^2.0.1",
     "tar-fs": "^2.1.1"
   },
