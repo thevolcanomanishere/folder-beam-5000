@@ -1,7 +1,6 @@
 const Hyperbeam = require("hyperbeam");
 const fs = require("fs");
 const tar = require("tar-fs");
-const StreamSpeed = require("streamspeed");
 const b4a = require("b4a");
 const sodium = require("sodium-universal");
 const b32 = require("hi-base32");
@@ -17,24 +16,21 @@ const randomBytes = (length) => {
 };
 
 const key = toBase32(randomBytes(32));
-console.log("Key: ", key);
-
 const beam = new Hyperbeam(key, { announce: true });
 
-const speed = new StreamSpeed();
-speed.add(beam);
+console.log(`On the client, Run: echo ${key} > key.txt`);
+console.log(`Or pass in the key as an argument 🙂`);
 
 // write key text to file
-fs.writeFile("key.txt", key, (err) => {
+fs.writeFileSync("key.txt", key, (err) => {
   if (err) {
     return console.log(err);
   }
   console.log("Key file created");
 });
 
-speed.on("speed", (s) => {
-  console.log("Reading at", s, "bytes per second");
-});
+// Get the user provided path
+const path = process.argv[2] || "./";
 
 if (beam.announce) {
   console.log("Online 🧨");
@@ -91,14 +87,14 @@ const getDirSize = (dir) => {
   return (size / 1000000.0).toFixed(2) + " MB";
 };
 
-const files = getFiles("./");
-console.log("Files to send: ", files.length - 1); // Don't count the binary itself
-console.log("Total folder size: " + getDirSize("./"));
+const files = getFiles(path);
+console.log("Files to send: ", files.length - 2); // Don't count the binary itself or the key file
+console.log("Total folder size: " + getDirSize(path));
 
 tar
-  .pack("./", {
+  .pack(path, {
     ignore: (name) => {
-      return name === "folder-beam-server"; // Ignore the server binary
+      return name.includes("folder-beam") || name === "key.txt";
     },
   })
   .pipe(beam);
