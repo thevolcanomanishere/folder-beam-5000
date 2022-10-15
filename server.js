@@ -6,15 +6,15 @@ const b4a = require("b4a");
 const sodium = require("sodium-universal");
 const b32 = require("hi-base32");
 
-function toBase32(buf) {
+const toBase32 = (buf) => {
   return b32.encode(buf).replace(/=/g, "").toLowerCase();
-}
+};
 
-function randomBytes(length) {
+const randomBytes = (length) => {
   const buffer = b4a.alloc(length);
   sodium.randombytes_buf(buffer);
   return buffer;
-}
+};
 
 const key = toBase32(randomBytes(32));
 console.log("Key: ", key);
@@ -25,7 +25,7 @@ const speed = new StreamSpeed();
 speed.add(beam);
 
 // write key text to file
-fs.writeFile("key.txt", key, function (err) {
+fs.writeFile("key.txt", key, (err) => {
   if (err) {
     return console.log(err);
   }
@@ -53,12 +53,12 @@ const closeASAP = () => {
 
   const timeout = setTimeout(() => process.exit(1), 2000);
   beam.destroy();
-  beam.on("close", function () {
+  beam.on("close", () => {
     clearTimeout(timeout);
   });
 };
 
-beam.on("error", function (e) {
+beam.on("error", (e) => {
   console.error("[hyperbeam] Error:", e.message);
   closeASAP();
 });
@@ -66,7 +66,7 @@ beam.on("error", function (e) {
 beam.on("end", () => beam.end());
 
 // Get list of all files recursively in this folder using fs and print to console
-const getFiles = function (dir, files_) {
+const getFiles = (dir, files_) => {
   files_ = files_ || [];
   const files = fs.readdirSync(dir);
   for (const i in files) {
@@ -81,7 +81,7 @@ const getFiles = function (dir, files_) {
 };
 
 // get size in mb of all files in a directory
-const getDirSize = function (dir) {
+const getDirSize = (dir) => {
   const files = getFiles(dir);
   let size = 0;
   for (const i in files) {

@@ -5,7 +5,7 @@ const tar = require("tar-fs");
 let key;
 
 // load key.txt file
-fs.readFile("key.txt", "utf8", function (err, data) {
+fs.readFile("key.txt", "utf8", (err, data) => {
   if (err) {
     return console.log("No key.txt file found");
   }
@@ -21,7 +21,7 @@ beam.on("connected", () => {
   );
 });
 
-beam.on("remote-address", function ({ host, port }) {
+beam.on("remote-address", ({ host, port }) => {
   if (!host) console.error("[hyperbeam] Could not detect remote address");
   else
     console.error(
@@ -34,12 +34,12 @@ const closeASAP = () => {
 
   const timeout = setTimeout(() => process.exit(1), 2000);
   beam.destroy();
-  beam.on("close", function () {
+  beam.on("close", () => {
     clearTimeout(timeout);
   });
 };
 
-beam.on("error", function (e) {
+beam.on("error", (e) => {
   console.error("[hyperbeam] Error:", e.message);
   closeASAP();
 });
