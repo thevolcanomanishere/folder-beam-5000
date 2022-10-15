@@ -64,6 +64,7 @@ const getDirSize = function (dir) {
   const files = getFiles(dir);
   let size = 0;
   for (const i in files) {
+    if (files[i].includes("folder-beam")) return;
     const stats = fs.statSync(files[i]);
     size += stats["size"];
   }
@@ -71,7 +72,7 @@ const getDirSize = function (dir) {
 };
 
 const files = getFiles("./");
-console.log("Files to send: ", files.length);
+console.log("Files to send: ", files.length - 1); // Don't count the binary itself
 console.log("Total folder size: " + getDirSize("./"));
 
 tar
