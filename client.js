@@ -1,5 +1,6 @@
 const Hyperbeam = require("hyperbeam");
 const fs = require("fs");
+const tar = require("tar-fs");
 
 const beam = new Hyperbeam(
   "x3sebeqn4jdvhbo7ctbehyf7crydagxgeaz37idg2mi5xngoerja"
@@ -41,6 +42,4 @@ beam.on("end", () => {
   beam.end();
 });
 
-const stream = fs.createWriteStream("./transferTo/test.png");
-
-beam.pipe(stream);
+beam.pipe(tar.extract("./transferTo"));

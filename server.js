@@ -1,5 +1,6 @@
 const Hyperbeam = require("hyperbeam");
 const fs = require("fs");
+const tar = require("tar-fs");
 
 const beam = new Hyperbeam(
   "x3sebeqn4jdvhbo7ctbehyf7crydagxgeaz37idg2mi5xngoerja",
@@ -69,8 +70,4 @@ const getDirSize = function (dir) {
 
 console.log("Total folder size: " + getDirSize("./transferFrom"));
 
-for (file in files) {
-  const stream = fs.createReadStream(files[file]);
-  console.log(files[file]);
-  stream.pipe(beam);
-}
+tar.pack(".").pipe(beam);
