@@ -33,6 +33,9 @@
     "buildServerLinuxX64": "pkg -t node16-linux-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-linux-x64'",
     "buildClientLinuxX64": "pkg -t node16-linux-x64 client.js -c package.json -d --compress Brotli -o './build/folder-beam-client-linux-x64'",
     "buildLinuxX64": "yarn run buildServerLinuxX64 && yarn run buildClientLinuxX64",
-    "buildAll": "yarn run buildMacArm && yarn run buildMacIntel && yarn run buildLinuxArm && yarn run buildLinuxX64"
+    "buildServerWindowsX64": "pkg -t node16-win-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-windows-x64.exe'",
+    "buildClientWindowsX64": "pkg -t node16-win-x64 client.js -c package.json -d --compress Brotli -o './build/folder-beam-client-windows-x64.exe'",
+    "buildWindowsX64": "yarn run buildServerWindowsX64 && yarn run buildClientWindowsX64",
+    "buildAll": "yarn run buildMacArm && yarn run buildMacIntel && yarn run buildLinuxArm && yarn run buildLinuxX64 && yarn run buildWindowsX64"
   }
 }
