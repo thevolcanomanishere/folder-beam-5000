@@ -19,7 +19,7 @@ Folder Beam 5000 allows you to directly send your files peer 2 peer, even betwee
 ### Usage
 
 1. Download the binaries for your source and destination platform from [Releases](https://github.com/thevolcanomanishere/folder-beam-5000/releases)
-2. For linux, run `chmod +x folder-beam-linux-[ARCH]` to make the binary executable
+2. For linux/macOS, run `chmod +x folder-beam-linux-[ARCH]` to make the binary executable
 3. Run `folder-beam-[PLATFORM]-[ARCH]` on the source computer. This will generate a `key.txt` file.
 4. Copy `folder-beam-[PLATFORM]-[ARCH]` and `key.txt` to the destination folder.
 5. Run `folder-beam-[PLATFORM]-[ARCH]` on the destination computer.
