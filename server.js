@@ -1,101 +1,132 @@
 const Hyperbeam = require("hyperbeam");
 const fs = require("fs");
 const tar = require("tar-fs");
-const b4a = require("b4a");
-const sodium = require("sodium-universal");
-const b32 = require("hi-base32");
+const utils = require("./utils.js");
 
-const toBase32 = (buf) => {
-  return b32.encode(buf).replace(/=/g, "").toLowerCase();
-};
+console.log("Folder Beam 5000 📁  ➡️  🧨");
 
-const randomBytes = (length) => {
-  const buffer = b4a.alloc(length);
-  sodium.randombytes_buf(buffer);
-  return buffer;
-};
-
-const key = toBase32(randomBytes(32));
-const beam = new Hyperbeam(key, { announce: true });
-
-console.log(`Or pass in the key as an argument to folder-beam-client 🙂`);
-
-// write key text to file
-fs.writeFileSync("key.txt", key, (err) => {
+// Determine if we are in server or client mode
+const keyAsArgument = process.argv[2];
+fs.readFile("key.txt", "utf8", (err, key) => {
+  if (key || keyAsArgument) {
+    return clientMode(key ? key : keyAsArgument);
+  }
   if (err) {
-    return console.log(err);
+    console.log("No key.txt file found");
+    console.log("Folder Beam server mode 👍");
+    return serverMode();
   }
-  console.log("Key file created");
 });
 
-// Get the user provided path
-const path = process.argv[2] || "./";
+const serverMode = () => {
+  const key = utils.createKey();
+  utils.writeKeyFile(key);
+  const beam = new Hyperbeam(key, { announce: true });
 
-if (beam.announce) {
-  console.log("Online 🧨");
-} else {
-  console.error("[hyperbeam] Connecting pipe...");
-}
+  // Get the user provided path
+  const path = process.argv[2] || "./";
 
-beam.on("connected", () => {
-  console.error(
-    "[hyperbeam] Success! Encrypted tunnel established to remote peer"
-  );
-  console.log("Beaming files to client 🚀");
-});
+  if (beam.announce) {
+    console.log("Online 🧨");
+  } else {
+    console.error("[hyperbeam] Connecting pipe...");
+  }
 
-const closeASAP = () => {
-  console.error("[hyperbeam] Shutting down beam...");
-
-  const timeout = setTimeout(() => process.exit(1), 2000);
-  beam.destroy();
-  beam.on("close", () => {
-    clearTimeout(timeout);
+  beam.on("connected", () => {
+    console.error(
+      "[hyperbeam] Success! Encrypted tunnel established to remote peer"
+    );
+    console.log("Beaming files to client 🚀");
   });
+
+  const closeASAP = () => {
+    console.error("[hyperbeam] Shutting down beam...");
+
+    const timeout = setTimeout(() => process.exit(1), 2000);
+    beam.destroy();
+    beam.on("close", () => {
+      clearTimeout(timeout);
+    });
+  };
+
+  beam.on("error", (e) => {
+    console.error("[hyperbeam] Error:", e.message);
+    closeASAP();
+  });
+
+  beam.on("end", () => beam.end());
+
+  const files = utils.getFiles(path);
+  const fileSize = utils.getDirSize(path);
+  console.log("Files to send: ", files.length); // Don't count the binary itself or the key file
+  console.log("Total folder size: " + fileSize);
+
+  tar
+    .pack(path, {
+      ignore: (name) => {
+        return name.includes("folder-beam") || name === "key.txt";
+      },
+    })
+    .pipe(beam);
 };
 
-beam.on("error", (e) => {
-  console.error("[hyperbeam] Error:", e.message);
-  closeASAP();
-});
+const clientMode = (key) => {
+  console.log("Folder Beam client mode 👍");
+  console.log("Attempting to connect to source...");
+  const keyArg = process.argv[2];
+  if (keyArg) {
+    console.log("Key argument detected: ", keyArg);
+    console.log("Key argument overides key provided in key.txt");
+    key = keyArg;
+  } // Use key from terminal args if it exists
+  const beam = new Hyperbeam(key);
 
-beam.on("end", () => beam.end());
+  beam.on("connected", () => {
+    console.error(
+      "[hyperbeam] Success! Encrypted tunnel established to remote peer"
+    );
+  });
 
-// Get list of all files recursively in this folder using fs and print to console
-const getFiles = (dir, files_) => {
-  files_ = files_ || [];
-  const files = fs.readdirSync(dir);
-  for (const i in files) {
-    const name = dir + "/" + files[i];
-    if (fs.statSync(name).isDirectory()) {
-      getFiles(name, files_);
-    } else {
-      files_.push(name);
-    }
-  }
-  return files_;
+  beam.on("remote-address", ({ host, port }) => {
+    if (!host) console.error("[hyperbeam] Could not detect remote address");
+    else
+      console.error(
+        "[hyperbeam] Joined the DHT - remote address is " + host + ":" + port
+      );
+  });
+
+  const closeASAP = () => {
+    console.error("[hyperbeam] Shutting down beam...");
+
+    const timeout = setTimeout(() => process.exit(1), 2000);
+    beam.destroy();
+    beam.on("close", () => {
+      clearTimeout(timeout);
+    });
+  };
+
+  beam.on("error", (e) => {
+    console.error("[hyperbeam] Error:", e.message);
+    closeASAP();
+  });
+
+  beam.on("end", () => {
+    console.log("[hyperbeam] Connection closed");
+    beam.end();
+  });
+
+  const printReplace = (text) => {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    process.stdout.write(text);
+  };
+
+  let totalData = 0;
+
+  beam.on("data", (data) => {
+    totalData += data.length;
+    printReplace(`Received ${(totalData / 1000000).toFixed(2)} MB`);
+  });
+
+  beam.pipe(tar.extract("./"));
 };
-
-// get size in mb of all files in a directory
-const getDirSize = (dir) => {
-  const files = getFiles(dir);
-  let size = 0;
-  for (const i in files) {
-    const stats = fs.statSync(files[i]);
-    size += stats["size"];
-  }
-  return (size / 1000000.0).toFixed(2) + " MB";
-};
-
-const files = getFiles(path);
-const fileSize = getDirSize(path);
-console.log("Files to send: ", files.length - 2); // Don't count the binary itself or the key file
-console.log("Total folder size: " + fileSize);
-
-tar
-  .pack(path, {
-    ignore: (name) => {
-      return name.includes("folder-beam") || name === "key.txt";
-    },
-  })
-  .pipe(beam);

@@ -5,6 +5,9 @@
   "main": "index.js",
   "author": "Alex McGonagle",
   "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
   "dependencies": {
     "b4a": "^1.6.0",
     "hi-base32": "^0.5.1",
@@ -20,21 +23,11 @@
     "assets": "node_modules"
   },
   "scripts": {
-    "buildServerMacArm": "pkg -t node16-macos-arm64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-mac-arm64'",
-    "buildClientMacArm": "pkg -t node16-macos-arm64 client.js -c package.json -d --compress Brotli -o './build/folder-beam-client-mac-arm64'",
-    "buildMacArm": "yarn run buildServerMacArm && yarn run buildClientMacArm",
-    "buildServerMacIntel": "pkg -t node16-macos-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-mac-intel'",
-    "buildClientMacIntel": "pkg -t node16-macos-x64 client.js -c package.json -d --compress Brotli -o './build/folder-beam-client-mac-intel'",
-    "buildMacIntel": "yarn run buildServerMacIntel && yarn run buildClientMacIntel",
-    "buildServerLinuxArm": "pkg -t node16-linux-arm64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-linux-arm64'",
-    "buildClientLinuxArm": "pkg -t node16-linux-arm64 client.js -c package.json -d --compress Brotli -o './build/folder-beam-client-linux-arm64'",
-    "buildLinuxArm": "yarn run buildServerLinuxArm && yarn run buildClientLinuxArm",
-    "buildServerLinuxX64": "pkg -t node16-linux-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-linux-x64'",
-    "buildClientLinuxX64": "pkg -t node16-linux-x64 client.js -c package.json -d --compress Brotli -o './build/folder-beam-client-linux-x64'",
-    "buildLinuxX64": "yarn run buildServerLinuxX64 && yarn run buildClientLinuxX64",
-    "buildServerWindowsX64": "pkg -t node16-win-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-windows-x64.exe'",
-    "buildClientWindowsX64": "pkg -t node16-win-x64 client.js -c package.json -d --compress Brotli -o './build/folder-beam-client-windows-x64.exe'",
-    "buildWindowsX64": "yarn run buildServerWindowsX64 && yarn run buildClientWindowsX64",
-    "buildAll": "yarn run buildMacArm && yarn run buildMacIntel && yarn run buildLinuxArm && yarn run buildLinuxX64 && yarn run buildWindowsX64"
+    "buildMacArm": "pkg -t node16-macos-arm64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-mac-arm64'",
+    "buildMacX64": "pkg -t node16-macos-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-mac-intel'",
+    "buildLinuxArm": "pkg -t node16-linux-arm64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-linux-arm64'",
+    "buildLinuxX64": "pkg -t node16-linux-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-linux-x64'",
+    "buildWindowsX64": "pkg -t node16-win-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-server-windows-x64.exe'",
+    "buildAll": "yarn buildMacArm && yarn buildMacX64 && yarn buildLinuxArm && yarn buildLinuxX64 && yarn buildWindowsX64"
   }
 }
