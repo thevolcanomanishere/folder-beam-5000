@@ -1,10 +1,9 @@
-import Hyperbeam from "hyperbeam";
-import fs from "fs";
-import tar from "tar-fs";
-import logUpdate from "log-update";
-import b4a from "b4a";
-import sodium from "sodium-universal";
-import b32 from "hi-base32";
+const Hyperbeam = require("hyperbeam");
+const fs = require("fs");
+const tar = require("tar-fs");
+const b4a = require("b4a");
+const sodium = require("sodium-universal");
+const b32 = require("hi-base32");
 
 const toBase32 = (buf) => {
   return b32.encode(buf).replace(/=/g, "").toLowerCase();
@@ -19,8 +18,7 @@ const randomBytes = (length) => {
 const key = toBase32(randomBytes(32));
 const beam = new Hyperbeam(key, { announce: true });
 
-console.log(`On the client, Run: echo ${key} > key.txt`);
-console.log(`Or pass in the key as an argument 🙂`);
+console.log(`Or pass in the key as an argument to folder-beam-client 🙂`);
 
 // write key text to file
 fs.writeFileSync("key.txt", key, (err) => {
@@ -31,7 +29,7 @@ fs.writeFileSync("key.txt", key, (err) => {
 });
 
 // Get the user provided path
-const path = process.argv[2] || "./tmpServer";
+const path = process.argv[2] || "./";
 
 if (beam.announce) {
   console.log("Online 🧨");
