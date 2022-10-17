@@ -21,6 +21,11 @@ fs.readFile("key.txt", "utf8", (err, key) => {
 const serverMode = () => {
   const key = utils.createKey();
   utils.writeKeyFile(key);
+  console.log("Key: ", key);
+  console.log("On the destination computer you can run:\n./folder-beam " + key);
+  console.log(
+    "Binary needs to be executable, so run chmod +x folder-beam first 🙂"
+  );
   const beam = new Hyperbeam(key, { announce: true });
 
   // Get the user provided path
