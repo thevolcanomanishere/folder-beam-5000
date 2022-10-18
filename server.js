@@ -24,7 +24,7 @@ const serverMode = () => {
   console.log("Key: ", key);
   console.log("On the destination computer you can run:\n./folder-beam " + key);
   console.log(
-    "Binary needs to be executable, so run chmod +x folder-beam first 🙂"
+    "Binary needs to be executable, so run 'chmod +x folder-beam' via terminal first 🙂"
   );
   const beam = new Hyperbeam(key, { announce: true });
 

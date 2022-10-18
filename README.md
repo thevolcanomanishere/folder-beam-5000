@@ -4,6 +4,15 @@
 
 I want a convenient, multi-platform, single executable way to magically beam the contents of a folder from one computer to another without any messing around with IPs, Firewalls, NAT etc etc.
 
+- Works on LAN
+- Works over the internet with computers behind home networks and firewalls
+- No account needed
+
+Super efficient:
+
+- Uses 35-40mb of RAM during transfer (Macbook Pro M1 2020)
+- Uses 3-5% CPU during transfer (Macbook Pro M1 2020)
+
 ## Why don't you just use Dropbox / Google Drive / OneDrive / iCloud / etc?
 
 All of those services are great, but they have a few drawbacks:
