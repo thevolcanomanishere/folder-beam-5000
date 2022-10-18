@@ -55,6 +55,11 @@ const Utils = {
       console.log("Key file created");
     });
   },
+  printReplace: (text) => {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    process.stdout.write(text);
+  },
 };
 
 module.exports = Utils;

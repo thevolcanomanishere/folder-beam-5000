@@ -1,4 +1,5 @@
 const Hyperbeam = require("hyperbeam");
+const { PassThrough } = require("streamx");
 const fs = require("fs");
 const tar = require("tar-fs");
 const utils = require("./utils.js");
@@ -26,10 +27,13 @@ const serverMode = () => {
   console.log(
     "Binary needs to be executable, so run 'chmod +x folder-beam' via terminal first 🙂"
   );
-  const beam = new Hyperbeam(key, { announce: true });
+  const beam = new Hyperbeam(key, {
+    announce: true,
+    mapReadable: (data) => console.log(data),
+  });
 
   // Get the user provided path
-  const path = process.argv[2] || "./";
+  const path = process.argv[2] || "./tmpServer";
 
   if (beam.announce) {
     console.log("Online 🧨");
@@ -59,20 +63,29 @@ const serverMode = () => {
     closeASAP();
   });
 
-  beam.on("end", () => beam.end());
+  beam.on("end", () => {
+    console.log("Files sent ✅");
+  });
 
   const files = utils.getFiles(path);
   const fileSize = utils.getDirSize(path);
   console.log("Files to send: ", files.length); // Don't count the binary itself or the key file
   console.log("Total folder size: " + fileSize);
 
-  tar
-    .pack(path, {
-      ignore: (name) => {
-        return name.includes("folder-beam") || name === "key.txt";
-      },
-    })
-    .pipe(beam);
+  let totalDataSent = 0;
+  const passThrough = new PassThrough();
+  passThrough.on("data", (data) => {
+    totalDataSent += data.length;
+    utils.printReplace(`Sent ${(totalDataSent / 1000000).toFixed(2)} MB`);
+  });
+
+  const tarFiles = tar.pack(path, {
+    ignore: (name) => {
+      return name.includes("folder-beam") || name === "key.txt";
+    },
+  });
+
+  tarFiles.pipe(passThrough).pipe(beam);
 };
 
 const clientMode = (key) => {
@@ -120,17 +133,13 @@ const clientMode = (key) => {
     beam.end();
   });
 
-  const printReplace = (text) => {
-    process.stdout.clearLine();
-    process.stdout.cursorTo(0);
-    process.stdout.write(text);
-  };
-
-  let totalData = 0;
+  let totalDataReceived = 0;
 
   beam.on("data", (data) => {
-    totalData += data.length;
-    printReplace(`Received ${(totalData / 1000000).toFixed(2)} MB`);
+    totalDataReceived += data.length;
+    utils.printReplace(
+      `Received ${(totalDataReceived / 1000000).toFixed(2)} MB`
+    );
   });
 
   beam.pipe(tar.extract("./"));
