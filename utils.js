@@ -9,10 +9,6 @@ const randomBytes = (length) => {
   return buffer;
 };
 
-const toBase32 = (buf) => {
-  return b32.encode(buf).replace(/=/g, "").toLowerCase();
-};
-
 // List of files that are not counted in the number of files sent
 const filter = ["folder-beam", "key.txt", ".DS_Store"];
 
@@ -26,7 +22,7 @@ const Utils = {
       const stats = fs.statSync(files[i]);
       size += stats["size"];
     }
-    return (size / 1000000.0).toFixed(2) + " MB";
+    return (size / 1000000.0).toFixed(2);
   },
   getFiles: (dir, files_) => {
     files_ = files_ || [];
@@ -44,9 +40,11 @@ const Utils = {
       return !filter.some((f) => file.includes(f));
     });
   },
-  createKey: () => {
-    return toBase32(randomBytes(32));
+  toBase32: (buf) => {
+    return b32.encode(buf).replace(/=/g, "").toLowerCase();
   },
+  createKey: (text) => Utils.toBase32(Buffer.alloc(32, text)),
+  createRandomKey: () => Utils.toBase32(randomBytes(32)),
   writeKeyFile: (key) => {
     fs.writeFileSync("key.txt", key, (err) => {
       if (err) {
@@ -59,6 +57,48 @@ const Utils = {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
     process.stdout.write(text);
+  },
+  printStats: (
+    lastDataSent,
+    lastTime,
+    fileSize,
+    totalDataSent,
+    connectedToPeer,
+    startTime
+  ) => {
+    const time = Date.now();
+    const speed = (totalDataSent - lastDataSent) / (time - lastTime);
+    lastDataSent = totalDataSent;
+    lastTime = time;
+    const timeLeft = (fileSize - totalDataSent / 1000000) / (speed / 1000);
+    const timeLeftString =
+      timeLeft < 60 ? timeLeft.toFixed(0) + "s" : timeLeft / 60 + "m";
+    const totalTimeElapsed = Math.floor((time - startTime) / 1000);
+    const timeElapsedFormatted =
+      totalTimeElapsed < 60
+        ? totalTimeElapsed + "s"
+        : totalTimeElapsed / 60 + "m";
+    if (connectedToPeer) {
+      Utils.printReplace(
+        `Sent ${(totalDataSent / 1000000).toFixed(2)}/${fileSize} MB || ${(
+          speed / 1000
+        ).toFixed(2)} MB/s || ${(
+          (totalDataSent / 1000000 / fileSize) *
+          100
+        ).toFixed(2)}% || ${timeLeftString}`
+      );
+    }
+
+    if ((totalDataSent / 1000000).toFixed(2) === fileSize) {
+      Utils.printReplace(
+        `Sent ${(totalDataSent / 1000000).toFixed(2)}/${fileSize} MB || ${(
+          speed / 1000
+        ).toFixed(2)} MB/s || ${(
+          (totalDataSent / 1000000 / fileSize) *
+          100
+        ).toFixed(2)}% || Total time: ${timeElapsedFormatted}`
+      );
+    }
   },
 };
 

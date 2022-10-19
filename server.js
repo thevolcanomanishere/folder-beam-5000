@@ -3,37 +3,41 @@ const { PassThrough } = require("streamx");
 const fs = require("fs");
 const tar = require("tar-fs");
 const utils = require("./utils.js");
+const { clearInterval } = require("timers");
+const readline = require("readline");
 
-console.log("Folder Beam 5000 📁  ➡️  🧨");
+console.log("\nFolder Beam 5000 📁  ➡️  🧨\n");
 
-// Determine if we are in server or client mode
-const keyAsArgument = process.argv[2];
-fs.readFile("key.txt", "utf8", (err, key) => {
-  if (key || keyAsArgument) {
-    return clientMode(key ? key : keyAsArgument);
-  }
-  if (err) {
-    console.log("No key.txt file found");
-    console.log("Folder Beam server mode 👍");
-    return serverMode();
-  }
-});
+const askQuestion = (query) => {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
 
-const serverMode = () => {
-  const key = utils.createKey();
-  utils.writeKeyFile(key);
-  console.log("Key: ", key);
-  console.log("On the destination computer you can run:\n./folder-beam " + key);
+  return new Promise((resolve) =>
+    rl.question(query, (ans) => {
+      rl.close();
+      resolve(ans);
+    })
+  );
+};
+
+const serverMode = (password) => {
+  let connectedToPeer = false;
+  const key = utils.createKey(password);
+
   console.log(
-    "Binary needs to be executable, so run 'chmod +x folder-beam' via terminal first 🙂"
+    "\nOn the destination computer you can run:\n./folder-beam " + password
+  );
+  console.log(
+    "\nBinary needs to be executable, so run 'chmod +x folder-beam' via terminal first 🙂"
   );
   const beam = new Hyperbeam(key, {
     announce: true,
-    mapReadable: (data) => console.log(data),
   });
 
   // Get the user provided path
-  const path = process.argv[2] || "./tmpServer";
+  const path = process.argv[2] || "./";
 
   if (beam.announce) {
     console.log("Online 🧨");
@@ -46,6 +50,8 @@ const serverMode = () => {
       "[hyperbeam] Success! Encrypted tunnel established to remote peer"
     );
     console.log("Beaming files to client 🚀");
+    connectedToPeer = true;
+    startTime = Date.now();
   });
 
   const closeASAP = () => {
@@ -63,20 +69,45 @@ const serverMode = () => {
     closeASAP();
   });
 
-  beam.on("end", () => {
-    console.log("Files sent ✅");
-  });
-
   const files = utils.getFiles(path);
   const fileSize = utils.getDirSize(path);
   console.log("Files to send: ", files.length); // Don't count the binary itself or the key file
-  console.log("Total folder size: " + fileSize);
+  console.log("Total folder size: " + fileSize + " MB");
+  console.log("Waiting for the client to connect...");
 
   let totalDataSent = 0;
   const passThrough = new PassThrough();
   passThrough.on("data", (data) => {
     totalDataSent += data.length;
-    utils.printReplace(`Sent ${(totalDataSent / 1000000).toFixed(2)} MB`);
+  });
+
+  // Calculate the speed of the data transfer
+  let lastDataSent = 0;
+  let lastTime = Date.now();
+  let startTime = 0;
+  const stats = setInterval(() => {
+    utils.printStats(
+      lastDataSent,
+      lastTime,
+      fileSize,
+      totalDataSent,
+      connectedToPeer,
+      startTime
+    );
+  }, 1000);
+
+  beam.on("end", () => {
+    connectedToPeer = false;
+    clearInterval(stats);
+    utils.printStats(
+      lastDataSent,
+      lastTime,
+      fileSize,
+      totalDataSent,
+      connectedToPeer,
+      startTime
+    );
+    beam.end();
   });
 
   const tarFiles = tar.pack(path, {
@@ -88,15 +119,8 @@ const serverMode = () => {
   tarFiles.pipe(passThrough).pipe(beam);
 };
 
-const clientMode = (key) => {
-  console.log("Folder Beam client mode 👍");
-  console.log("Attempting to connect to source...");
-  const keyArg = process.argv[2];
-  if (keyArg) {
-    console.log("Key argument detected: ", keyArg);
-    console.log("Key argument overides key provided in key.txt");
-    key = keyArg;
-  } // Use key from terminal args if it exists
+const clientMode = (password) => {
+  const key = utils.createKey(password);
   const beam = new Hyperbeam(key);
 
   beam.on("connected", () => {
@@ -129,8 +153,7 @@ const clientMode = (key) => {
   });
 
   beam.on("end", () => {
-    console.log("[hyperbeam] Connection closed");
-    beam.end();
+    return beam.end();
   });
 
   let totalDataReceived = 0;
@@ -144,3 +167,20 @@ const clientMode = (key) => {
 
   beam.pipe(tar.extract("./"));
 };
+
+// Determine if we are in server or client mode
+const keyAsArgument = process.argv[2] ? process.argv[2] : false;
+
+if (!keyAsArgument) {
+  console.log("Folder Beam server mode 👍");
+  console.log(
+    "If you want to receive files, you need to provide the password as an argument"
+  );
+  console.log("Example: ./folder-beam 1234");
+  console.log("\n");
+  return askQuestion("Create a password: ").then((password) => {
+    return serverMode(password);
+  });
+} else {
+  return clientMode(keyAsArgument);
+}
