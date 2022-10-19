@@ -10,8 +10,8 @@ I want a convenient, multi-platform, single executable way to magically beam the
 
 Super efficient:
 
-- Uses 35-40mb of RAM during transfer (Macbook Pro M1 2020)
-- Uses 3-5% CPU during transfer (Macbook Pro M1 2020)
+- 35-40mb RAM
+- 3-5% CPU
 
 ## Why don't you just use Dropbox / Google Drive / OneDrive / iCloud / etc?
 
@@ -29,18 +29,22 @@ Folder Beam 5000 allows you to directly send your files peer 2 peer, even betwee
 
 1. Download the binaries for your source and destination platform from [Releases](https://github.com/thevolcanomanishere/folder-beam-5000/releases)
 2. For linux/macOS, run `chmod +x folder-beam-linux-[ARCH]` to make the binary executable
-3. Run `folder-beam-[PLATFORM]-[ARCH]` on the source computer. This will generate a `key.txt` file.
-4. Copy `folder-beam-[PLATFORM]-[ARCH]` and `key.txt` to the destination folder.
-5. Run `folder-beam-[PLATFORM]-[ARCH]` on the destination computer.
-6. ....
+3. Run `folder-beam-[PLATFORM]-[ARCH]` on the source computer
+4. Enter a password that you want to encrypt your connection with
+5. Copy `folder-beam-[PLATFORM]-[ARCH]` to the destination computer
+6. Run `folder-beam-[PLATFORM]-[ARCH] [Password]` on the destination computer
+7. A connection will be attempted, as soon as it connects, your files will start uploading
 
 ### TODO
 
 - [x] Send all files in folder from source to desitination folder
 - [x] Generate unique key from server bin
 - [x] Load key into client bin
+- [x] Transfer speed
+- [x] Password instead of key file
 - [ ] Progress bar
-- [ ] Transfer speed
+- [ ] GUI
+- [ ] Codesign binaries for macOS
 
 ### Credits
 
