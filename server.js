@@ -5,11 +5,21 @@ const { clearInterval } = require("timers");
 const fs = require("fs");
 const archiver = require("archiver");
 const unzip = require("unzip-stream");
+const argv = require("minimist")(process.argv.slice(2));
 
 console.log("\nFolder Beam 5000 📁  ➡️  🧨\n");
 
+if (argv.h) utils.commandLineHelp();
+
+const DEV = argv.d ? true : false;
+if (DEV) console.log("Running in dev mode");
+// Get the user provided path
+const pathServer = DEV ? "./tmpServer" : "./";
+const pathClient = DEV ? "./tmpClient" : "./";
+
 const serverMode = (password) => {
   let connectedToPeer = false;
+  let transferFinished = false;
   const key = utils.createKey(password);
 
   console.log(
@@ -21,9 +31,6 @@ const serverMode = (password) => {
   const beam = new Hyperbeam(key, {
     announce: true,
   });
-
-  // Get the user provided path
-  const path = "./";
 
   if (beam.announce) {
     console.log("Online 🧨");
@@ -55,8 +62,12 @@ const serverMode = (password) => {
     closeASAP();
   });
 
-  const files = utils.getFiles(path);
-  const fileSize = utils.getDirSize(path);
+  beam.on("end", () => {
+    transferFinished = true;
+  });
+
+  const files = utils.getFiles(pathServer);
+  const fileSize = utils.getDirSize(pathServer);
   console.log("Files to send: ", files.length); // Don't count the binary itself or the key file
   console.log("Total folder size: " + fileSize + " MB");
   console.log("Waiting for the client to connect...");
@@ -78,7 +89,8 @@ const serverMode = (password) => {
       fileSize,
       totalDataSent,
       connectedToPeer,
-      startTime
+      startTime,
+      transferFinished
     );
   }, 1000);
 
@@ -91,7 +103,8 @@ const serverMode = (password) => {
       fileSize,
       totalDataSent,
       connectedToPeer,
-      startTime
+      startTime,
+      transferFinished
     );
     beam.end();
   });
@@ -157,13 +170,13 @@ const clientMode = (password) => {
     );
   });
 
-  const unzipper = unzip.Extract({ path: "./" });
+  const unzipper = unzip.Extract({ path: pathClient });
   beam.pipe(unzipper);
 };
 
 // Determine if we are in server or client mode
-const keyAsArgument = process.argv[2] ? process.argv[2] : false;
-
+const keyAsArgument = argv._.length > 0 ? argv._[0] : null;
+console.log(argv);
 if (!keyAsArgument) {
   console.log("Folder Beam server mode 👍");
   console.log(
@@ -171,6 +184,10 @@ if (!keyAsArgument) {
   );
   console.log("Example: ./folder-beam 1234");
   console.log("\n");
+  if (argv.p) {
+    console.log("Password provided: " + argv.p);
+    return serverMode(argv.p);
+  }
   return utils.askQuestion("Create a password: ").then((password) => {
     return serverMode(password);
   });
