@@ -105,6 +105,7 @@ const Utils = {
     }
 
     if (transferFinished && (totalDataSent / 1000000).toFixed(2) === fileSize) {
+      process.stdout.clearLine();
       Utils.printReplace(
         `Sent ${(totalDataSent / 1000000).toFixed(2)}/${fileSize} MB || ${(
           speed / 1000

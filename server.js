@@ -157,7 +157,7 @@ const clientMode = (password) => {
   });
 
   beam.on("end", () => {
-    console.log("Beam ending...");
+    utils.printReplace("Transfer finished 🚀");
     return beam.end();
   });
 
