@@ -176,7 +176,6 @@ const clientMode = (password) => {
 
 // Determine if we are in server or client mode
 const keyAsArgument = argv._.length > 0 ? argv._[0] : null;
-console.log(argv);
 if (!keyAsArgument) {
   console.log("Folder Beam server mode 👍");
   console.log(
