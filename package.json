@@ -21,7 +21,10 @@
     "pkg": "^5.8.0"
   },
   "pkg": {
-    "assets": "node_modules"
+    "assets": [
+      "node_modules/sodium-native",
+      "node_modules/udx-native"
+    ]
   },
   "scripts": {
     "buildMacArm": "pkg -t node16-macos-arm64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-mac-arm64'",
@@ -29,6 +32,6 @@
     "buildLinuxArm": "pkg -t node16-linux-arm64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-linux-arm64'",
     "buildLinuxX64": "pkg -t node16-linux-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-linux-x64'",
     "buildWindowsX64": "pkg -t node16-win-x64 server.js -c package.json -d --compress Brotli -o './build/folder-beam-windows-x64.exe'",
-    "buildAll": "yarn buildMacArm && yarn buildMacX64 && yarn buildLinuxArm && yarn buildLinuxX64 && yarn buildWindowsX64"
+    "buildAll": "yarn buildMacArm & yarn buildMacX64 & yarn buildLinuxArm & yarn buildLinuxX64 & yarn buildWindowsX64"
   }
 }
