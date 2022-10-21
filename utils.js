@@ -2,6 +2,7 @@ const fs = require("fs");
 const b32 = require("hi-base32");
 const sodium = require("sodium-universal");
 const b4a = require("b4a");
+const readline = require("readline");
 
 const randomBytes = (length) => {
   const buffer = b4a.alloc(length);
@@ -64,7 +65,8 @@ const Utils = {
     fileSize,
     totalDataSent,
     connectedToPeer,
-    startTime
+    startTime,
+    transferFinished
   ) => {
     const time = Date.now();
     const speed = (totalDataSent - lastDataSent) / (time - lastTime);
@@ -72,24 +74,27 @@ const Utils = {
     lastTime = time;
     const timeLeft = (fileSize - totalDataSent / 1000000) / (speed / 1000);
     const timeLeftString =
-      timeLeft < 60 ? timeLeft.toFixed(0) + "s" : timeLeft / 60 + "m";
+      timeLeft < 60
+        ? timeLeft.toFixed(0) + " seconds"
+        : (timeLeft / 60).toFixed + " minutes";
     const totalTimeElapsed = Math.floor((time - startTime) / 1000);
     const timeElapsedFormatted =
       totalTimeElapsed < 60
         ? totalTimeElapsed + "s"
         : totalTimeElapsed / 60 + "m";
     if (connectedToPeer) {
+      const sent = (totalDataSent / 1000000).toFixed(2);
+      const howFast = (speed / 1000).toFixed(2);
       Utils.printReplace(
-        `Sent ${(totalDataSent / 1000000).toFixed(2)}/${fileSize} MB || ${(
-          speed / 1000
-        ).toFixed(2)} MB/s || ${(
+        `Sent ${sent}/${fileSize} MB || ${howFast} MB/s || ${(
           (totalDataSent / 1000000 / fileSize) *
           100
         ).toFixed(2)}% || ${timeLeftString}`
       );
     }
 
-    if ((totalDataSent / 1000000).toFixed(2) === fileSize) {
+    if (transferFinished && (totalDataSent / 1000000).toFixed(2) === fileSize) {
+      process.stdout.clearLine();
       Utils.printReplace(
         `Sent ${(totalDataSent / 1000000).toFixed(2)}/${fileSize} MB || ${(
           speed / 1000
@@ -99,6 +104,24 @@ const Utils = {
         ).toFixed(2)}% || Total time: ${timeElapsedFormatted}`
       );
     }
+  },
+  askQuestion: (query) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    return new Promise((resolve) =>
+      rl.question(query, (ans) => {
+        rl.close();
+        resolve(ans);
+      })
+    );
+  },
+  commandLineHelp: () => {
+    console.log("Usage for server : $ folder-beam -p [PASSWORD] [-d DEV MODE]");
+    console.log("Usage for client : $ folder-beam [PASSWORD] [-d DEV MODE]");
+    process.exit(1);
   },
 };
 
