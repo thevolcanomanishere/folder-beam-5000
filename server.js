@@ -1,26 +1,12 @@
 const Hyperbeam = require("hyperbeam");
 const { PassThrough } = require("streamx");
-const fs = require("fs");
-const tar = require("tar-fs");
 const utils = require("./utils.js");
 const { clearInterval } = require("timers");
-const readline = require("readline");
+const fs = require("fs");
+const archiver = require("archiver");
+const unzip = require("unzip-stream");
 
 console.log("\nFolder Beam 5000 📁  ➡️  🧨\n");
-
-const askQuestion = (query) => {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) =>
-    rl.question(query, (ans) => {
-      rl.close();
-      resolve(ans);
-    })
-  );
-};
 
 const serverMode = (password) => {
   let connectedToPeer = false;
@@ -37,7 +23,7 @@ const serverMode = (password) => {
   });
 
   // Get the user provided path
-  const path = process.argv[2] || "./";
+  const path = "./";
 
   if (beam.announce) {
     console.log("Online 🧨");
@@ -110,13 +96,18 @@ const serverMode = (password) => {
     beam.end();
   });
 
-  const tarFiles = tar.pack(path, {
-    ignore: (name) => {
-      return name.includes("folder-beam") || name === "key.txt";
-    },
+  const archive = archiver("zip", {
+    namePrependSlash: true,
+    store: true,
   });
 
-  tarFiles.pipe(passThrough).pipe(beam);
+  // for every file in files, append to archive
+  files.forEach((file) => {
+    archive.append(fs.createReadStream(file), { name: file });
+  });
+  archive.finalize();
+
+  archive.pipe(passThrough).pipe(beam);
 };
 
 const clientMode = (password) => {
@@ -153,6 +144,7 @@ const clientMode = (password) => {
   });
 
   beam.on("end", () => {
+    console.log("Beam ending...");
     return beam.end();
   });
 
@@ -165,7 +157,8 @@ const clientMode = (password) => {
     );
   });
 
-  beam.pipe(tar.extract("./"));
+  const unzipper = unzip.Extract({ path: "./" });
+  beam.pipe(unzipper);
 };
 
 // Determine if we are in server or client mode
@@ -178,7 +171,7 @@ if (!keyAsArgument) {
   );
   console.log("Example: ./folder-beam 1234");
   console.log("\n");
-  return askQuestion("Create a password: ").then((password) => {
+  return utils.askQuestion("Create a password: ").then((password) => {
     return serverMode(password);
   });
 } else {

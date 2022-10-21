@@ -2,6 +2,7 @@ const fs = require("fs");
 const b32 = require("hi-base32");
 const sodium = require("sodium-universal");
 const b4a = require("b4a");
+const readline = require("readline");
 
 const randomBytes = (length) => {
   const buffer = b4a.alloc(length);
@@ -40,6 +41,17 @@ const Utils = {
       return !filter.some((f) => file.includes(f));
     });
   },
+  detectFilesGreaterThan8Gb: (dir) => {
+    const files = Utils.getFiles(dir);
+    for (const i in files) {
+      const stats = fs.statSync(files[i]);
+      if (stats["size"] > 8489934592) {
+        // Little bit smaller than 8gb just incase
+        return true;
+      }
+    }
+    return false;
+  },
   toBase32: (buf) => {
     return b32.encode(buf).replace(/=/g, "").toLowerCase();
   },
@@ -72,7 +84,9 @@ const Utils = {
     lastTime = time;
     const timeLeft = (fileSize - totalDataSent / 1000000) / (speed / 1000);
     const timeLeftString =
-      timeLeft < 60 ? timeLeft.toFixed(0) + "s" : timeLeft / 60 + "m";
+      timeLeft < 60
+        ? timeLeft.toFixed(0) + "seconds"
+        : (timeLeft / 60).toFixed + "minutes";
     const totalTimeElapsed = Math.floor((time - startTime) / 1000);
     const timeElapsedFormatted =
       totalTimeElapsed < 60
@@ -99,6 +113,19 @@ const Utils = {
         ).toFixed(2)}% || Total time: ${timeElapsedFormatted}`
       );
     }
+  },
+  askQuestion: (query) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    return new Promise((resolve) =>
+      rl.question(query, (ans) => {
+        rl.close();
+        resolve(ans);
+      })
+    );
   },
 };
 
