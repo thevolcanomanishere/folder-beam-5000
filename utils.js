@@ -41,17 +41,6 @@ const Utils = {
       return !filter.some((f) => file.includes(f));
     });
   },
-  detectFilesGreaterThan8Gb: (dir) => {
-    const files = Utils.getFiles(dir);
-    for (const i in files) {
-      const stats = fs.statSync(files[i]);
-      if (stats["size"] > 8489934592) {
-        // Little bit smaller than 8gb just incase
-        return true;
-      }
-    }
-    return false;
-  },
   toBase32: (buf) => {
     return b32.encode(buf).replace(/=/g, "").toLowerCase();
   },
