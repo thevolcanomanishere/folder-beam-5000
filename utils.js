@@ -76,7 +76,7 @@ const Utils = {
     const timeLeftString =
       timeLeft < 60
         ? timeLeft.toFixed(0) + " seconds"
-        : (timeLeft / 60).toFixed + " minutes";
+        : (timeLeft / 60).toFixed(0) + " minutes";
     const totalTimeElapsed = Math.floor((time - startTime) / 1000);
     const timeElapsedFormatted =
       totalTimeElapsed < 60
