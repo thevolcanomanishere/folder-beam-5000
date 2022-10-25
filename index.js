@@ -12,10 +12,13 @@ console.log("\nFolder Beam 5000 📁  ➡️  🧨\n");
 if (argv.h) utils.commandLineHelp();
 
 const DEV = argv.d ? true : false;
+console.log(DEV);
 if (DEV) console.log("Running in dev mode");
 // Get the user provided path
 const pathServer = DEV ? "./tmpServer" : "./";
 const pathClient = DEV ? "./tmpClient" : "./";
+console.log("Path to folder: " + pathServer);
+console.log("Path for client: " + pathClient);
 
 const serverMode = (password) => {
   let connectedToPeer = false;
@@ -66,6 +69,8 @@ const serverMode = (password) => {
     transferFinished = true;
   });
 
+  console.log("Getting your files ready 📁");
+  cosole.log("This might take some time if you have 000's of files 🤓");
   const files = utils.getFiles(pathServer);
   const fileSize = utils.getDirSize(pathServer);
   console.log("Files to send: ", files.length); // Don't count the binary itself or the key file
