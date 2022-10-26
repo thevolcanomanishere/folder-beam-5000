@@ -42,8 +42,8 @@ Folder Beam 5000 allows you to directly send your files peer 2 peer, even betwee
 - [x] Load key into client bin
 - [x] Transfer speed
 - [x] Password instead of key file
-- [ ] Progress bar
-- [ ] GUI
+- [ ] Add filewatching for continued file mirroring
+- [ ] GUI (Waiting for NodeGUI to support ARM)
 - [ ] Codesign binaries for macOS
 
 ### Credits

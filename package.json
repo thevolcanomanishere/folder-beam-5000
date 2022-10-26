@@ -14,6 +14,7 @@
     "hi-base32": "^0.5.1",
     "hyperbeam": "^3.0.0",
     "minimist": "^1.2.7",
+    "progress-stream": "^2.0.0",
     "sodium-universal": "^3.1.0",
     "unzip-stream": "^0.3.1"
   },
@@ -27,11 +28,11 @@
     ]
   },
   "scripts": {
-    "buildMacArm": "pkg -t node16-macos-arm64 index.js -c package.json -d --compress Brotli -o './build/folder-beam-mac-arm64'",
-    "buildMacX64": "pkg -t node16-macos-x64 index.js -c package.json -d --compress Brotli -o './build/folder-beam-mac-x64'",
-    "buildLinuxArm": "pkg -t node16-linux-arm64 index.js -c package.json -d --compress Brotli -o './build/folder-beam-linux-arm64'",
-    "buildLinuxX64": "pkg -t node16-linux-x64 index.js -c package.json -d --compress Brotli -o './build/folder-beam-linux-x64'",
-    "buildWindowsX64": "pkg -t node16-win-x64 index.js -c package.json -d --compress Brotli -o './build/folder-beam-windows-x64.exe'",
+    "buildMacArm": "pkg -t node16-macos-arm64 index.js -c package.json --compress GZip -o './build/folder-beam-mac-arm64'",
+    "buildMacX64": "pkg -t node16-macos-x64 index.js -c package.json --compress GZip -o './build/folder-beam-mac-x64'",
+    "buildLinuxArm": "pkg -t node16-linux-arm64 index.js -c package.json --compress GZip -o './build/folder-beam-linux-arm64'",
+    "buildLinuxX64": "pkg -t node16-linux-x64 index.js -c package.json --compress GZip -o './build/folder-beam-linux-x64'",
+    "buildWindowsX64": "pkg -t node16-win-x64 index.js -c package.json --compress GZip -o './build/folder-beam-windows-x64.exe'",
     "buildAll": "yarn buildMacArm & yarn buildMacX64 & yarn buildLinuxArm & yarn buildLinuxX64 & yarn buildWindowsX64"
   }
 }

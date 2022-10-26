@@ -59,51 +59,26 @@ const Utils = {
     process.stdout.cursorTo(0);
     process.stdout.write(text);
   },
-  printStats: (
-    lastDataSent,
-    lastTime,
-    fileSize,
-    totalDataSent,
-    connectedToPeer,
-    startTime,
-    transferFinished
-  ) => {
-    const time = Date.now();
-    const speed = (totalDataSent - lastDataSent) / (time - lastTime);
-    lastDataSent = totalDataSent;
-    lastTime = time;
-    const timeLeft = (fileSize - totalDataSent / 1000000) / (speed / 1000);
-    const timeLeftString =
-      timeLeft < 60
-        ? timeLeft.toFixed(0) + " seconds"
-        : (timeLeft / 60).toFixed(0) + " minutes";
-    const totalTimeElapsed = Math.floor((time - startTime) / 1000);
-    const timeElapsedFormatted =
-      totalTimeElapsed < 60
-        ? totalTimeElapsed + "s"
-        : totalTimeElapsed / 60 + "m";
-    if (connectedToPeer) {
-      const sent = (totalDataSent / 1000000).toFixed(2);
-      const howFast = (speed / 1000).toFixed(2);
-      Utils.printReplace(
-        `Sent ${sent}/${fileSize} MB || ${howFast} MB/s || ${(
-          (totalDataSent / 1000000 / fileSize) *
-          100
-        ).toFixed(2)}% || ${timeLeftString}`
-      );
-    }
-
-    if (transferFinished && (totalDataSent / 1000000).toFixed(2) === fileSize) {
-      process.stdout.clearLine();
-      Utils.printReplace(
-        `Sent ${(totalDataSent / 1000000).toFixed(2)}/${fileSize} MB || ${(
-          speed / 1000
-        ).toFixed(2)} MB/s || ${(
-          (totalDataSent / 1000000 / fileSize) *
-          100
-        ).toFixed(2)}% || Total time: ${timeElapsedFormatted}`
-      );
-    }
+  printStats: (progress) => {
+    // {
+    //   percentage: 100,
+    //   transferred: 1925949970,
+    //   length: 1925000000,
+    //   remaining: 0,
+    //   eta: 0,
+    //   runtime: 30,
+    //   delta: 41782,
+    //   speed: 61630399.04
+    // }
+    Utils.printReplace(
+      `Progress: ${progress.percentage.toFixed(2)}% | Sent: ${(
+        progress.transferred / 1000000
+      ).toFixed(0)}MB | Speed: ${(progress.speed / 1000000).toFixed(
+        2
+      )} MB/s | ETA: ${progress.eta.toFixed(2)} seconds | Runtime: ${
+        progress.runtime
+      } seconds`
+    );
   },
   askQuestion: (query) => {
     const rl = readline.createInterface({
@@ -118,10 +93,17 @@ const Utils = {
       })
     );
   },
-  commandLineHelp: () => {
-    console.log("Usage for server : $ folder-beam -p [PASSWORD] [-d DEV MODE]");
-    console.log("Usage for client : $ folder-beam [PASSWORD] [-d DEV MODE]");
-    process.exit(1);
+  commandLineHelp: (exit) => {
+    console.log(
+      "Usage for server : $ folder-beam -p [PASSWORD] [-d DEV MODE] -s [PATH]"
+    );
+    console.log(
+      "Usage for client : $ folder-beam [PASSWORD] [-d DEV MODE] -d [PATH]"
+    );
+    console.log("\n");
+    if (exit) {
+      process.exit(1);
+    }
   },
 };
 
