@@ -1,25 +1,39 @@
 const Hyperbeam = require("hyperbeam");
-const { PassThrough } = require("streamx");
 const utils = require("./utils.js");
-const { clearInterval } = require("timers");
 const fs = require("fs");
 const archiver = require("archiver");
 const unzip = require("unzip-stream");
 const argv = require("minimist")(process.argv.slice(2));
+const progress = require("progress-stream");
 
 console.log("\nFolder Beam 5000 📁  ➡️  🧨\n");
 
-if (argv.h) utils.commandLineHelp();
+if (argv.h) utils.commandLineHelp(true);
+utils.commandLineHelp(false);
 
-const DEV = argv.d ? true : false;
-if (DEV) console.log("Running in dev mode");
 // Get the user provided path
-const pathServer = DEV ? "./tmpServer" : "./";
-const pathClient = DEV ? "./tmpClient" : "./";
+const pathServer = argv.s ? argv.s : "./";
+if (argv.s) {
+  console.log("Beaming files from: " + pathServer);
+} else {
+  console.log("Beaming files from: current working directory");
+  console.log("Use -s to specify a path");
+}
+
+// Determine if we are in server or client mode
+const keyAsArgument = argv._.length > 0 ? argv._[0] : null;
+
+const pathClient = argv.d ? argv.d : "./";
+if (keyAsArgument) {
+  if (argv.d) {
+    console.log("Beaming files to: " + pathClient);
+  } else {
+    console.log("Beaming files to: current working directory");
+    console.log("Use -d to specify a path");
+  }
+}
 
 const serverMode = (password) => {
-  let connectedToPeer = false;
-  let transferFinished = false;
   const key = utils.createKey(password);
 
   console.log(
@@ -62,52 +76,16 @@ const serverMode = (password) => {
     closeASAP();
   });
 
-  beam.on("end", () => {
-    transferFinished = true;
-  });
+  console.log("\n");
+  console.log("Getting your files ready 📁");
+  console.log("This might take some time if you have 000's of files 🤓");
+  console.log("\n");
 
   const files = utils.getFiles(pathServer);
   const fileSize = utils.getDirSize(pathServer);
   console.log("Files to send: ", files.length); // Don't count the binary itself or the key file
   console.log("Total folder size: " + fileSize + " MB");
   console.log("Waiting for the client to connect...");
-
-  let totalDataSent = 0;
-  const passThrough = new PassThrough();
-  passThrough.on("data", (data) => {
-    totalDataSent += data.length;
-  });
-
-  // Calculate the speed of the data transfer
-  let lastDataSent = 0;
-  let lastTime = Date.now();
-  let startTime = 0;
-  const stats = setInterval(() => {
-    utils.printStats(
-      lastDataSent,
-      lastTime,
-      fileSize,
-      totalDataSent,
-      connectedToPeer,
-      startTime,
-      transferFinished
-    );
-  }, 1000);
-
-  beam.on("end", () => {
-    connectedToPeer = false;
-    clearInterval(stats);
-    utils.printStats(
-      lastDataSent,
-      lastTime,
-      fileSize,
-      totalDataSent,
-      connectedToPeer,
-      startTime,
-      transferFinished
-    );
-    beam.end();
-  });
 
   const archive = archiver("zip", {
     namePrependSlash: true,
@@ -120,7 +98,16 @@ const serverMode = (password) => {
   });
   archive.finalize();
 
-  archive.pipe(passThrough).pipe(beam);
+  const streamProgress = progress({
+    length: parseInt(fileSize) * 1000000,
+    time: 100,
+  });
+
+  streamProgress.on("progress", (progress) => {
+    utils.printStats(progress);
+  });
+
+  archive.pipe(streamProgress).pipe(beam);
 };
 
 const clientMode = (password) => {
@@ -161,22 +148,24 @@ const clientMode = (password) => {
     return beam.end();
   });
 
-  let totalDataReceived = 0;
+  const streamProgress = progress({
+    time: 100,
+  });
 
-  beam.on("data", (data) => {
-    totalDataReceived += data.length;
+  streamProgress.on("progress", (progress) => {
     utils.printReplace(
-      `Received ${(totalDataReceived / 1000000).toFixed(2)} MB`
+      `Received ${(progress.transferred / 1000000).toFixed(2)} MB | Runtime: ${
+        progress.runtime
+      } seconds`
     );
   });
 
   const unzipper = unzip.Extract({ path: pathClient });
-  beam.pipe(unzipper);
+  beam.pipe(streamProgress).pipe(unzipper);
 };
 
-// Determine if we are in server or client mode
-const keyAsArgument = argv._.length > 0 ? argv._[0] : null;
 if (!keyAsArgument) {
+  console.log("\n");
   console.log("Folder Beam server mode 👍");
   console.log(
     "If you want to receive files, you need to provide the password as an argument"
