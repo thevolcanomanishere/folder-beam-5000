@@ -33,6 +33,39 @@ if (keyAsArgument) {
   }
 }
 
+let beam;
+let files = [];
+
+// Watch for new files in folder and get paths
+const watchFolder = (path) => {
+  const archive = archiver("zip", {
+    namePrependSlash: true,
+    store: true,
+  });
+  fs.watch(path, (eventType, filename) => {
+    if (filename === ".DS_Store") return;
+    // ignore file deletions
+    if (filename) {
+      const filePath = path + "/" + filename;
+      if (!fs.existsSync(filePath)) return;
+
+      archive.append(fs.createReadStream(filePath), { name: filePath });
+      // archive.finalize();
+      const stats = fs.statSync(filePath);
+      const size = stats["size"];
+      const streamProgress = progress({
+        length: size,
+        time: 100,
+      });
+
+      streamProgress.on("progress", (progress) => {
+        utils.printStats(progress);
+      });
+      archive.pipe(streamProgress).pipe(beam);
+    }
+  });
+};
+
 const serverMode = (password) => {
   const key = utils.createKey(password);
 
@@ -42,7 +75,7 @@ const serverMode = (password) => {
   console.log(
     "\nBinary needs to be executable, so run 'chmod +x folder-beam' via terminal first 🙂"
   );
-  const beam = new Hyperbeam(key, {
+  beam = new Hyperbeam(key, {
     announce: true,
   });
 
@@ -81,7 +114,7 @@ const serverMode = (password) => {
   console.log("This might take some time if you have 000's of files 🤓");
   console.log("\n");
 
-  const files = utils.getFiles(pathServer);
+  files = utils.getFiles(pathServer);
   const fileSize = utils.getDirSize(pathServer);
   console.log("Files to send: ", files.length); // Don't count the binary itself or the key file
   console.log("Total folder size: " + fileSize + " MB");
@@ -96,7 +129,7 @@ const serverMode = (password) => {
   files.forEach((file) => {
     archive.append(fs.createReadStream(file), { name: file });
   });
-  archive.finalize();
+  // archive.finalize();
 
   const streamProgress = progress({
     length: parseInt(fileSize) * 1000000,
@@ -106,13 +139,14 @@ const serverMode = (password) => {
   streamProgress.on("progress", (progress) => {
     utils.printStats(progress);
   });
-
+  // archive.pipe(beam);
   archive.pipe(streamProgress).pipe(beam);
+  watchFolder(pathServer);
 };
 
 const clientMode = (password) => {
   const key = utils.createKey(password);
-  const beam = new Hyperbeam(key);
+  beam = new Hyperbeam(key);
 
   beam.on("connected", () => {
     console.error(
@@ -145,7 +179,7 @@ const clientMode = (password) => {
 
   beam.on("end", () => {
     utils.printReplace("Transfer finished 🚀");
-    return beam.end();
+    // return beam.end();
   });
 
   const streamProgress = progress({
@@ -160,25 +194,30 @@ const clientMode = (password) => {
     );
   });
 
+  beam.write();
   const unzipper = unzip.Extract({ path: pathClient });
   beam.pipe(streamProgress).pipe(unzipper);
 };
 
-if (!keyAsArgument) {
-  console.log("\n");
-  console.log("Folder Beam server mode 👍");
-  console.log(
-    "If you want to receive files, you need to provide the password as an argument"
-  );
-  console.log("Example: ./folder-beam 1234");
-  console.log("\n");
-  if (argv.p) {
-    console.log("Password provided: " + argv.p);
-    return serverMode(argv.p);
+const main = () => {
+  if (!keyAsArgument) {
+    console.log("\n");
+    console.log("Folder Beam server mode 👍");
+    console.log(
+      "If you want to receive files, you need to provide the password as an argument"
+    );
+    console.log("Example: ./folder-beam 1234");
+    console.log("\n");
+    if (argv.p) {
+      console.log("Password provided: " + argv.p);
+      return serverMode(argv.p);
+    }
+    return utils.askQuestion("Create a password: ").then((password) => {
+      return serverMode(password);
+    });
+  } else {
+    return clientMode(keyAsArgument);
   }
-  return utils.askQuestion("Create a password: ").then((password) => {
-    return serverMode(password);
-  });
-} else {
-  return clientMode(keyAsArgument);
-}
+};
+
+main();
